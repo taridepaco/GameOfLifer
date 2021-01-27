@@ -114,11 +114,11 @@ body {
     min-height: 365px;
   }
   .text-ocre{
-    color: rgb(102, 49, 119);
+    color: rgb(72, 32, 85);
     font-weight: bolder;
   }
   .header-name{
-    background-color: rgba(44, 44, 44, 0.459);
+    background-color: rgba(255, 255, 255, 0.35);
     /* position: absolute; */
     /* line-height:100%; */
     /* text-align: center; */
