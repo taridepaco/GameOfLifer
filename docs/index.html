@@ -68,7 +68,7 @@
                   <b>Project to simulate Conway's game of life</b>
                 </h1>
                 <h1 class="display-6 text-ocre">
-                  <b>---Work in progress---</b>
+                  <b><a class="text-ocre" href="https://lifer.taridepaco.com.es">Try it live</a></b>
                 </h1>
               </div>
             </div>
@@ -95,10 +95,12 @@
             </div>
             
             <p class="mt-2" align="justify" style="font-size: large; ">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Libero asperiores voluptatem minima incidunt vero nihil magnam voluptate, voluptatum doloremque aliquid mollitia impedit quas aspernatur sed dolore nisi magni perferendis soluta.
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Libero asperiores voluptatem minima incidunt vero nihil magnam voluptate, voluptatum doloremque aliquid mollitia impedit quas aspernatur sed dolore nisi magni perferendis soluta.
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Libero asperiores voluptatem minima incidunt vero nihil magnam voluptate, voluptatum doloremque aliquid mollitia impedit quas aspernatur sed dolore nisi magni perferendis soluta.
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Libero asperiores voluptatem minima incidunt vero nihil magnam voluptate, voluptatum doloremque aliquid mollitia impedit quas aspernatur sed dolore nisi magni perferendis soluta.
+              A simulator of Conway's Game of Life that runs entirely on your graphics card (WebGL2),
+              so it can evolve boards of hundreds of millions of cells in real time.
+              Draw cells, load classic patterns, zoom and pan, and watch the board evolve.
+            </p>
+            <p class="mt-2" style="font-size: large;">
+              <a href="https://lifer.taridepaco.com.es">Open the simulator &rarr;</a>
             </p>
           </div>
         </div>
@@ -186,40 +188,26 @@
         <div class="row">
           <div class="col-md-6"></div>
           <div class="col-md-6">
-            <form class="card mt-4 align=right">
+            <div class="card mt-4">
               <div class="card-body">
-                <div class="form-group">
-                  <input type="text" class="form-control" placeholder="Name">
-                </div>
-                <div class="form-group">
-                  <input type="text" class="form-control" placeholder="Email">
-                </div>
-                <div class="form-group">
-                  <textarea cols="30" rows="10" placeholder="Message" class="form-control"></textarea>
-                </div>
-                <button class="btn btn-outline-secondary btn-block">
-                  Send
-                </button>
+                <p class="mb-3" style="font-size: large;">Questions or ideas? Open an issue on GitHub.</p>
+                <a class="btn btn-outline-secondary btn-block" href="https://github.com/taridepaco/GameOfLifer/issues">
+                  GitHub issues
+                </a>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
     </footer>
 
    <!-- SCRIPTS -->
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-  integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-  crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
     integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ"
     crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
     integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm"
-    crossorigin="anonymous"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
     crossorigin="anonymous"></script>
   <script src="js/parallax.js"></script>
   <!-- SCROOLL REVEAL SCRIPT -->
@@ -236,9 +224,10 @@
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href').length > 1 ? this.getAttribute('href') : 'body');
         e.preventDefault();
 
-        document.querySelector(this.getAttribute('hrefo')).scrollIntoView({
+        target.scrollIntoView({
           behavior: 'smooth'
         });
       });

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game of Lifer</title>
+  <meta name="description" content="El juego de la vida de Conway en la GPU del navegador: millones de celdas en tiempo real.">
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="bar">
+    <strong class="brand">Game of Lifer</strong>
+    <div class="group">
+      <button id="play" type="button" title="Reproducir / pausa (espacio)">▶ Play</button>
+      <button id="step" type="button" title="Una generación (N)">Paso</button>
+      <button id="random" type="button" title="Rellenar al azar (R)">Aleatorio</button>
+      <button id="clear" type="button" title="Vaciar (C)">Vaciar</button>
+      <button id="fit" type="button" title="Ver el tablero entero (F)">Encajar</button>
+    </div>
+    <div class="group">
+      <label>Velocidad
+        <select id="speed"></select>
+      </label>
+      <label>Tamaño
+        <select id="size"></select>
+      </label>
+      <label>Densidad
+        <input id="density" type="range" min="0.05" max="0.9" step="0.05" value="0.3">
+        <output id="density-out">30%</output>
+      </label>
+      <label class="check"><input id="wrap" type="checkbox" checked> Toroidal</label>
+    </div>
+    <div class="group">
+      <label>Patrón
+        <select id="pattern">
+          <option value="">— dibujar —</option>
+        </select>
+      </label>
+      <button id="rle" type="button" title="Pegar un patrón en formato RLE">Pegar RLE</button>
+    </div>
+    <div id="stats" class="stats" aria-live="off"></div>
+  </header>
+
+  <main>
+    <canvas id="board"></canvas>
+    <p id="hint" class="hint">Clic: dibujar o borrar · Arrastre con botón derecho, central o Mayús: mover · Rueda: zoom</p>
+    <div id="error" class="error" hidden></div>
+  </main>
+
+  <dialog id="rle-dialog">
+    <form method="dialog">
+      <h2>Pegar patrón RLE</h2>
+      <p>Pega un patrón en formato RLE (por ejemplo, de LifeWiki). Después haz clic en el tablero para colocarlo.</p>
+      <textarea id="rle-text" rows="10" spellcheck="false" placeholder="x = 3, y = 3&#10;bob$2bo$3o!"></textarea>
+      <p id="rle-error" class="error-inline" hidden></p>
+      <div class="actions">
+        <button value="cancel" type="submit" class="secondary">Cancelar</button>
+        <button id="rle-ok" value="ok" type="submit">Usar patrón</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="life.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>

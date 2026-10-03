@@ -1,0 +1,6 @@
+venv_Go/
+.venv/
+.vscode/
+__pycache__/
+.pytest_cache/
+dist/
