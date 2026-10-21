@@ -18,8 +18,8 @@ ProtectSystem=strict
 ProtectHome=yes
 # empty /mnt (no Windows drives) except DNS: in WSL /etc/resolv.conf points to /mnt/wsl/resolv.conf
 TemporaryFileSystem=/mnt:ro
-BindReadOnlyPaths=/mnt/wsl/resolv.conf
-InaccessiblePaths=/init
+BindReadOnlyPaths=-/mnt/wsl/resolv.conf
+InaccessiblePaths=-/init
 PrivateTmp=yes
 PrivateDevices=yes
 ProtectKernelTunables=yes
