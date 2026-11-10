@@ -7,18 +7,19 @@ Live: <https://taridepaco.github.io/GameOfLifer/> (linked from the island at <ht
 
 | Path | What |
 |---|---|
-| `docs/` | The simulator, served as is by GitHub Pages: `life.js` (GPU engine), `ui.js` (controls, language, theme), `index.html`, `style.css`. No dependencies, no build. |
+| `web/` | The simulator: `life.js` (GPU engine), `ui.js` (controls, language, theme), `index.html`, `style.css`. No dependencies. |
 | `GameOfLife_main.py` | Reference NumPy engine, used by the tests to check the shader. |
 | `GameOfLife.m` | The original MATLAB version. |
-| `deploy/` | Build script, systemd unit and install script for the old home-server copy (being retired). |
+| `deploy/` | Builds `dist/` (what gets published) and installs it on the home server. See [DEPLOY.md](DEPLOY.md). |
+| `.github/workflows/pages.yml` | Publishes `dist/` to GitHub Pages with every push to `main`. |
 
 ## Look
 
 The page uses the shared design system of [taridepaco.github.io](https://taridepaco.github.io/):
-`docs/system.css` (tokens and pieces) and `docs/theme.js` (light, dark or system theme) are unmodified
+`web/system.css` (tokens and pieces) and `web/theme.js` (light, dark or system theme) are unmodified
 copies from [that repository](https://github.com/taridepaco/taridepaco.github.io) and are not edited
 here. What is specific to the simulator (panel, dropdowns, slider, edge selector, keys, board frame,
-RLE dialog) is in `docs/style.css`, built with the same tokens. The panel, slider and segmented
+RLE dialog) is in `web/style.css`, built with the same tokens. The panel, slider and segmented
 selector are the same as in [Boider](https://github.com/taridepaco/Boider).
 
 The board is drawn by WebGL and does not inherit CSS, so `ui.js` reads the tokens and redraws when the
@@ -50,44 +51,13 @@ pick a pattern (or paste RLE) and click to place it, Ctrl+click to place several
 ## Develop
 
 ```bash
-python3 -m http.server 8090 --bind 127.0.0.1 --directory docs
+python3 -m http.server 8090 --bind 127.0.0.1 --directory web
 uv run pytest                                   # reference engine tests
 uv run python GameOfLife_main.py --size 2048    # NumPy benchmark
 ```
 
 ## Deploy
 
-GitHub Pages publishes `docs/` from `main` (*Settings → Pages → Deploy from a branch → main → /docs*),
-so every push to `main` updates <https://taridepaco.github.io/GameOfLifer/>. All paths are relative.
-`docs/.nojekyll` skips the Jekyll step.
-
-### Old home-server copy (being retired)
-
-Until it is switched off, the same files are also served from the home server (WSL2, `Ubuntu-24.04`)
-through the Cloudflare tunnel `viser`:
-
-- subdomain `lifer.taridepaco.com.es` → `http://localhost:8003`
-- systemd unit `lifer.service`, user `lifer`, files in `/opt/lifer` (read-only, owned by root)
-- static files served by `python3 -m http.server` bound to 127.0.0.1
-
-Update after changing `docs/` (from WSL, in the repo):
-
-```bash
-deploy/build.sh && sudo deploy/install.sh
-```
-
-`build.sh` adds a content hash to the CSS/JS URLs, because Cloudflare caches them for hours.
-
-First-time setup, besides `install.sh`:
-
-1. In `/etc/cloudflared/config.yml`, before the final `- service: http_status:404`:
-   ```yaml
-     - hostname: lifer.taridepaco.com.es
-       service: http://localhost:8003
-   ```
-   then `cloudflared tunnel ingress validate --config /etc/cloudflared/config.yml` and `sudo systemctl restart cloudflared`.
-2. DNS: `cloudflared tunnel route dns viser lifer.taridepaco.com.es` (already done).
-
-Switch it off (once GitHub Pages is serving the new page): remove the ingress entry and restart
-`cloudflared`, `sudo systemctl disable --now lifer`, and delete the `lifer` CNAME in the Cloudflare
-dashboard. Then `deploy/` can be deleted from this repository.
+`deploy/build.sh` builds `web/` into `dist/`, and that same `dist/` is published everywhere:
+GitHub Pages (by `.github/workflows/pages.yml`, with every push to `main`) and the home server
+(`lifer.taridepaco.com.es`, by `deploy/install.sh`). Details in [DEPLOY.md](DEPLOY.md).
