@@ -186,7 +186,7 @@
 
   const sizeSel = $('size');
   for (let s = 256; s <= Math.min(life.maxSize, 16384); s *= 2) sizeSel.add(new Option('', s));
-  sizeSel.value = String(Math.min(2048, life.maxSize));
+  sizeSel.value = String(Math.min(1024, life.maxSize)); // default board: 1024² (1 M cells)
   function paintSizes() {
     for (const o of sizeSel.options) {
       const s = +o.value;
@@ -482,6 +482,7 @@
   paintText();
   syncTheme();
   newBoard(+sizeSel.value);
+  setRunning(true); // starts playing as soon as the page opens
   window.lifer = { life, view, setRunning, fit }; // handy from the console
   requestAnimationFrame(frame);
 })();
