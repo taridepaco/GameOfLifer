@@ -118,6 +118,14 @@ void main() {
   o = vec4(col, 1.0);
 }`;
 
+/** Errors carry a code (and its values) so the page can show them in its language. */
+function lifeError(code, message, args = {}) {
+  const e = new Error(message);
+  e.code = code;
+  e.args = args;
+  return e;
+}
+
 function hexToRgb(hex) {
   const n = parseInt(hex.replace('#', ''), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
@@ -126,7 +134,7 @@ function hexToRgb(hex) {
 class Life {
   constructor(canvas) {
     const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, preserveDrawingBuffer: false });
-    if (!gl) throw new Error('WebGL2 no está disponible en este navegador.');
+    if (!gl) throw lifeError('nogl', 'WebGL2 is not available in this browser.');
     this.gl = gl;
     this.canvas = canvas;
     this.maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -137,11 +145,12 @@ class Life {
     this.textures = [];
     this.framebuffers = [];
     this.cur = 0;
+    // [r, g, b] in 0..1; the page sets them from the theme (see setColors in ui.js)
     this.colors = {
-      alive: hexToRgb('#ffb454'),
-      dead: hexToRgb('#0d1117'),
-      outside: hexToRgb('#05070a'),
-      grid: hexToRgb('#1f2833'),
+      alive: hexToRgb('#4f8f47'),
+      dead: hexToRgb('#f7f2d6'),
+      outside: hexToRgb('#bfe3d6'),
+      grid: hexToRgb('#c9c3a9'),
     };
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
@@ -191,7 +200,9 @@ class Life {
   /** Allocates a w×h board (all dead). Throws if the GPU runs out of memory. */
   resize(w, h) {
     const gl = this.gl;
-    if (w > this.maxSize || h > this.maxSize) throw new Error(`El máximo de esta GPU es ${this.maxSize}×${this.maxSize}.`);
+    if (w > this.maxSize || h > this.maxSize) {
+      throw lifeError('maxsize', `This GPU's maximum is ${this.maxSize}×${this.maxSize}.`, { n: this.maxSize });
+    }
     this._free();
     while (gl.getError() !== gl.NO_ERROR) { /* drain old errors */ }
     for (let i = 0; i < 2; i++) {
@@ -213,7 +224,7 @@ class Life {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (err !== gl.NO_ERROR || !complete) {
       this._free();
-      throw new Error(`No hay memoria de GPU suficiente para ${w}×${h}.`);
+      throw lifeError('nomem', `Not enough GPU memory for ${w}×${h}.`, { w, h });
     }
     this.width = w;
     this.height = h;
@@ -360,19 +371,20 @@ function parseRLE(text) {
   }
   w = Math.max(w, ...rows.map((r) => r.length));
   h = Math.max(h, rows.length);
-  if (!w || !h) throw new Error('RLE vacío o no válido.');
+  if (!w || !h) throw lifeError('rle', 'Empty or invalid RLE.');
   const cells = new Uint8Array(w * h);
   rows.forEach((r, y) => r.forEach((v, x) => { cells[y * w + x] = v; }));
   return { w, h, cells };
 }
 
+// Built-in patterns by id; their names are in the page texts (ui.js).
 const PATTERNS = {
-  'Planeador': 'x = 3, y = 3\nbob$2bo$3o!',
-  'Nave ligera (LWSS)': 'x = 5, y = 4\nbo2bo$o4b$o3bo$4o!',
-  'R-pentominó': 'x = 3, y = 3\nb2o$2o$bo!',
-  'Bellota': 'x = 7, y = 3\nbo5b$3bo3b$2o2b3o!',
-  'Púlsar': 'x = 13, y = 13\n2b3o3b3o2b2$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o2b2$2b3o3b3o2b$o4bobo4bo$o4bobo4bo$o4bobo4bo2$2b3o3b3o!',
-  'Cañón de Gosper': 'x = 36, y = 9\n24bo11b$22bobo11b$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o14b$2o8bo3bob2o4bobo11b$10bo5bo7bo11b$11bo3bo20b$12b2o!',
+  glider: 'x = 3, y = 3\nbob$2bo$3o!',
+  lwss: 'x = 5, y = 4\nbo2bo$o4b$o3bo$4o!',
+  rpentomino: 'x = 3, y = 3\nb2o$2o$bo!',
+  acorn: 'x = 7, y = 3\nbo5b$3bo3b$2o2b3o!',
+  pulsar: 'x = 13, y = 13\n2b3o3b3o2b2$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o2b2$2b3o3b3o2b$o4bobo4bo$o4bobo4bo$o4bobo4bo2$2b3o3b3o!',
+  gosper: 'x = 36, y = 9\n24bo11b$22bobo11b$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o14b$2o8bo3bob2o4bobo11b$10bo5bo7bo11b$11bo3bo20b$12b2o!',
 };
 
 window.Life = Life;
