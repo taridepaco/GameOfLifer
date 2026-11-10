@@ -2,7 +2,7 @@
 
 Conway's game of life — reference NumPy engine (no GUI).
 
-The interactive, GPU-accelerated version lives in docs/. This module is the
+The interactive, GPU-accelerated version lives in web/. This module is the
 reference implementation used by the tests and for quick benchmarks.
 
 '''

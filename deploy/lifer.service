@@ -1,5 +1,5 @@
 [Unit]
-Description=Game of Lifer (static site for lifer.taridepaco.com.es)
+Description=Game of Lifer (static site on 127.0.0.1:8003)
 After=network-online.target
 Wants=network-online.target
 
