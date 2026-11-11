@@ -29,6 +29,25 @@ theme changes: dead cells on `--surface`, the area outside the board in `--bg`, 
 The page is in Spanish and English (`?lang=es|en`). The language and theme chosen are shared with the
 rest of taridepaco.github.io.
 
+On phones (up to 720 px wide) the screen comes first:
+
+- The top bar fits in one row: just the back arrow (its text is still there for screen readers), the
+  title and the language switch. The "Simulador" tag is hidden and the theme button moves into the
+  panel, under "Aspecto".
+- Under the board, a deck with the three most used controls: play/pause, step and random.
+- The panel starts folded and opens as a sheet over the bottom of the board, without resizing it.
+  Screens lower than 500 px (phones in landscape) also start with the panel folded.
+- The status line drops the Gcells/s figure to fit in one row.
+
+## Board size
+
+The default board ("Pantalla" / "Screen" in the size list) has the shape of the canvas: its longer
+side is the smallest power of two that covers the longer side of the canvas in CSS pixels (between
+256 and 1024), and the other side keeps the proportions of the canvas, so it fills the screen. That
+gives, for example, 491×512 on a 6.8" phone, 1024×870 on a laptop and 1024×622 on a 1920×1080 monitor.
+The square sizes, from 256² up to what the GPU allows, are still in the list. The simulation starts
+running when the page opens.
+
 ## Performance
 
 Measured on an RTX 2070 (Chrome/ANGLE D3D11):

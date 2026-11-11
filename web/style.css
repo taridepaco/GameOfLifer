@@ -118,8 +118,8 @@ legend {
 .buttons .wide { grid-column: 1 / -1; }
 
 /* play / pausa con icono de píxeles dibujado en CSS (los símbolos ▶ ⏸ salen como emoji en móvil) */
-#play { display: flex; align-items: center; justify-content: center; gap: 10px; }
-#play::before {
+.play { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.play::before {
   content: "";
   flex: none;
   width: 10px;
@@ -128,7 +128,7 @@ legend {
   /* triángulo escalonado de 5 columnas × 9 filas */
   clip-path: polygon(0 0, 20% 0, 20% 11.11%, 40% 11.11%, 40% 22.22%, 60% 22.22%, 60% 33.33%, 80% 33.33%, 80% 44.44%, 100% 44.44%, 100% 55.56%, 80% 55.56%, 80% 66.67%, 60% 66.67%, 60% 77.78%, 40% 77.78%, 40% 88.89%, 20% 88.89%, 20% 100%, 0 100%);
 }
-#play[data-running="true"]::before {
+.play[data-running="true"]::before {
   width: 10px;
   clip-path: polygon(0 0, 30% 0, 30% 100%, 0 100%, 0 0, 70% 0, 100% 0, 100% 100%, 70% 100%, 70% 0);
 }
@@ -382,17 +382,90 @@ dialog textarea {
 }
 .actions { justify-content: flex-end; gap: 14px; padding: 4px 5px 5px 0; }
 
+/* solo en el móvil: la barra de mandos y la sección de aspecto del panel */
+.deck, .m-only { display: none; }
+
+/* Móvil: la pantalla manda.
+   - Cabecera en una fila: solo la flecha de vuelta (el texto sigue para lectores de pantalla),
+     el título y el idioma. La etiqueta se oculta y el botón de tema pasa al panel (Aspecto).
+   - Bajo la pantalla, una barra con los tres mandos más usados.
+   - El panel empieza plegado (index.html) y al abrirse sube como una hoja por encima de la parte
+     baja del lienzo, sin encogerlo: el tablero no se recoloca. */
 @media (max-width: 720px) {
-  .topbar { gap: 8px 10px; }
-  .app { flex-direction: column-reverse; }
+  .topbar { flex-wrap: nowrap; gap: 10px; padding-top: max(8px, env(safe-area-inset-top, 0px)); padding-bottom: 8px; }
+  .topbar .back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    margin-left: -10px;
+    text-decoration: none;
+  }
+  .topbar .back-arrow { font-size: 1.1rem; }
+  .topbar .back-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .topbar h1 {
+    min-width: 0;
+    margin-right: auto;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .topbar .tag, .topbar .theme-btn { display: none; }
+
+  .app { flex-direction: column; }
+  .screen { order: 1; margin: 10px 17px 12px 12px; }
+  .status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .deck {
+    order: 2;
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0 max(17px, env(safe-area-inset-right, 0px)) 17px max(12px, env(safe-area-inset-left, 0px));
+  }
+  .deck .btn { min-width: 0; min-height: 44px; padding: 8px 4px; text-align: center; }
+  @media (max-width: 360px) { .deck .btn { font-size: .74em; letter-spacing: -.02em; } }
+
   #panel,
   #panel[open] {
+    order: 3;
+    position: relative;
+    flex: none;
     width: 100%;
-    max-height: 45dvh;
+    overflow: visible;
     border-right: 0;
     border-top: var(--bw) solid var(--line);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  #panel[open] > summary { border-bottom: 0; }
+  #panel[open] > #controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    z-index: 5;
+    max-height: 58dvh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-top: var(--bw) solid var(--line);
+    border-bottom: var(--bw) solid var(--line);
+    box-shadow: 0 -5px 0 var(--shade);
+    scrollbar-color: var(--line) var(--surface);
+  }
   #controls { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .screen { margin: 12px 17px 17px 12px; }
+
+  /* lo que ya está en la barra de mandos no se repite en el panel */
+  #panel .desk { display: none; }
+  #panel .m-wide { grid-column: 1 / -1; }
+  .m-only { display: flex; }
 }

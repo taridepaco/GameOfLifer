@@ -13,7 +13,8 @@
       kind: 'Simulador',
       panel: 'Controles',
       pitch: 'El juego de la vida de Conway calculado en la GPU de tu navegador: millones de celdas en tiempo real.',
-      'g.run': 'Simulación', 'g.board': 'Tablero', 'g.patterns': 'Patrones', 'g.help': 'Manejo',
+      'g.run': 'Simulación', 'g.board': 'Tablero', 'g.patterns': 'Patrones', 'g.help': 'Manejo', 'g.look': 'Aspecto',
+      deck: 'Mandos principales', 'size.screen': 'Pantalla',
       play: 'Play', pause: 'Pausa', step: 'Paso', fit: 'Encajar', random: 'Aleatorio', clear: 'Vaciar',
       speed: 'Velocidad', size: 'Tamaño', density: 'Densidad',
       edges: 'Bordes', 'edges.wrap': 'Toroidal', 'edges.closed': 'Cerrado',
@@ -46,7 +47,8 @@
       kind: 'Simulator',
       panel: 'Controls',
       pitch: "Conway's Game of Life computed on your browser's GPU: millions of cells in real time.",
-      'g.run': 'Simulation', 'g.board': 'Board', 'g.patterns': 'Patterns', 'g.help': 'How to use it',
+      'g.run': 'Simulation', 'g.board': 'Board', 'g.patterns': 'Patterns', 'g.help': 'How to use it', 'g.look': 'Appearance',
+      deck: 'Main controls', 'size.screen': 'Screen',
       play: 'Play', pause: 'Pause', step: 'Step', fit: 'Fit', random: 'Random', clear: 'Clear',
       speed: 'Speed', size: 'Size', density: 'Density',
       edges: 'Edges', 'edges.wrap': 'Wrap around', 'edges.closed': 'Closed',
@@ -88,7 +90,7 @@
   }
 
   // ---- top bar: theme and language (they work even without WebGL2) ------
-  const themeBtn = $('theme-btn');
+  const themeBtns = document.querySelectorAll('.theme-btn'); // top bar, and the panel on phones
   const Theme = window.Theme;
   const onLang = [];
   const onTheme = [];
@@ -100,22 +102,22 @@
     document.querySelectorAll('[data-i18n-label]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nLabel)); });
     document.querySelectorAll('.lang-switch button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang));
     document.querySelector('meta[name="description"]').content = t('desc');
-    if (Theme) themeBtn.textContent = t(`theme.${Theme.mode()}`);
+    if (Theme) themeBtns.forEach((b) => { b.textContent = t(`theme.${Theme.mode()}`); });
     onLang.forEach((f) => f());
   }
 
   function syncTheme() {
-    if (Theme) themeBtn.textContent = t(`theme.${Theme.mode()}`);
+    if (Theme) themeBtns.forEach((b) => { b.textContent = t(`theme.${Theme.mode()}`); });
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = getComputedStyle(root).getPropertyValue('--bg').trim();
     onTheme.forEach((f) => f());
   }
 
   if (Theme) {
-    themeBtn.addEventListener('click', () => Theme.cycle());
+    themeBtns.forEach((b) => b.addEventListener('click', () => Theme.cycle()));
     Theme.onChange(syncTheme);
   } else {
-    themeBtn.hidden = true;
+    themeBtns.forEach((b) => { b.hidden = true; });
   }
   document.querySelectorAll('.lang-switch button').forEach((b) => {
     b.addEventListener('click', () => {
@@ -184,24 +186,39 @@
   SPEEDS.forEach((s) => speedSel.add(new Option(`${s} gen/s`, s, false, s === rate)));
   speedSel.addEventListener('change', () => { rate = +speedSel.value; });
 
-  const sizeSel = $('size');
-  for (let s = 256; s <= Math.min(life.maxSize, 16384); s *= 2) sizeSel.add(new Option('', s));
-  sizeSel.value = String(defaultSize());
-
-  // Default board from the size of the canvas: the smallest power of two that covers its longer
-  // side in CSS pixels, between 256² and 1024². A phone (canvas of 300-500 px) gets 512²,
-  // a computer 1024².
-  function defaultSize() {
-    const side = Math.max(canvas.clientWidth, canvas.clientHeight);
-    let s = 256;
-    while (s < side && s < 1024) s *= 2;
-    return Math.min(s, life.maxSize);
+  // Board shaped like the canvas (the default): its longer side is the smallest power of two that
+  // covers the longer side of the canvas in CSS pixels, between 256 and 1024 (512 on a phone,
+  // 1024 on a computer), and the other side keeps the proportions of the canvas, so the fitted
+  // board fills the screen.
+  function screenBoard() {
+    const cw = canvas.clientWidth, ch = canvas.clientHeight;
+    if (!cw || !ch) return { w: 512, h: 512 };
+    const long = Math.max(cw, ch);
+    let p = 256;
+    while (p < long && p < 1024) p *= 2;
+    p = Math.min(p, life.maxSize);
+    const other = Math.max(1, Math.round(p * Math.min(cw, ch) / long));
+    return cw >= ch ? { w: p, h: other } : { w: other, h: p };
   }
+  let screenDims = screenBoard();
+  let boardValue = 'screen'; // value of the size list for the current board
+
+  const sizeSel = $('size');
+  sizeSel.add(new Option('', 'screen'));
+  for (let s = 256; s <= Math.min(life.maxSize, 16384); s *= 2) sizeSel.add(new Option('', s));
+  sizeSel.value = boardValue;
+  const dimsOf = (value) => (value === 'screen' ? screenDims : { w: +value, h: +value });
+
   function paintSizes() {
+    const mcells = (w, h) => (w * h / 1e6).toLocaleString(lang, { maximumFractionDigits: w * h < 1e6 ? 2 : 0 });
     for (const o of sizeSel.options) {
-      const s = +o.value;
-      const mcells = (s * s / 1e6).toLocaleString(lang, { maximumFractionDigits: s < 1024 ? 2 : 0 });
-      o.text = `${s}² (${mcells} M)`;
+      if (o.value === 'screen') {
+        const { w, h } = screenDims;
+        o.text = `${t('size.screen')}: ${w}×${h} (${mcells(w, h)} M)`;
+      } else {
+        const s = +o.value;
+        o.text = `${s}² (${mcells(s, s)} M)`;
+      }
     }
   }
   onLang.push(paintSizes);
@@ -232,12 +249,14 @@
     if (!p) patternSel.value = '';
   }
 
-  const playBtn = $('play');
-  const playLabel = playBtn.querySelector('span');
+  const playBtns = document.querySelectorAll('[data-act="play"]');
   function paintPlay() {
-    playLabel.dataset.i18n = running ? 'pause' : 'play';
-    playLabel.textContent = t(playLabel.dataset.i18n);
-    playBtn.dataset.running = running;
+    for (const b of playBtns) {
+      const label = b.querySelector('span');
+      label.dataset.i18n = running ? 'pause' : 'play';
+      label.textContent = t(label.dataset.i18n);
+      b.dataset.running = running;
+    }
   }
   onLang.push(paintPlay);
   function setRunning(on) {
@@ -245,14 +264,15 @@
     pending = 0;
     paintPlay();
   }
-  playBtn.addEventListener('click', () => setRunning(!running));
-  $('step').addEventListener('click', stepOnce);
-  $('random').addEventListener('click', randomize);
-  $('clear').addEventListener('click', clearBoard);
-  $('fit').addEventListener('click', fit);
+  // the buttons say what they do with data-act; play, step and random are also in the phone deck
+  const ACTIONS = { play: () => setRunning(!running), step: stepOnce, random: randomize, clear: clearBoard, fit: () => fit() };
+  document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', ACTIONS[b.dataset.act]));
   $('edges').addEventListener('change', (e) => { life.wrap = e.target.value === 'wrap'; });
   life.wrap = $('edges-wrap').checked;
-  sizeSel.addEventListener('change', () => newBoard(+sizeSel.value));
+  sizeSel.addEventListener('change', () => {
+    if (sizeSel.value === 'screen') { screenDims = screenBoard(); paintSizes(); } // the canvas may have changed
+    newBoard(sizeSel.value);
+  });
 
   // Give the keyboard back to the board after using a button or a list, so a
   // later Space doesn't press that button again or open the list.
@@ -269,15 +289,18 @@
   function randomize() { life.randomize(+density.value); dirty = true; }
   function clearBoard() { life.clear(); dirty = true; }
 
-  function newBoard(size) {
-    const previous = life.width;
+  /** New board for a value of the size list ('screen' or the side of a square). */
+  function newBoard(value) {
+    const previous = { w: life.width, h: life.height, value: boardValue };
+    const { w, h } = dimsOf(value);
     try {
-      life.resize(size, size);
+      life.resize(w, h);
+      boardValue = value;
     } catch (e) {
       alert(errorText(e));
-      if (previous) {
-        life.resize(previous, previous);
-        sizeSel.value = String(previous);
+      if (previous.w) {
+        life.resize(previous.w, previous.h);
+        sizeSel.value = previous.value;
       }
     }
     randomize();
@@ -446,12 +469,16 @@
   let last = performance.now();
   let statT = last, statGen = 0, genRate = 0;
 
+  const narrow = window.matchMedia('(max-width: 720px)'); // phones: one short line, without Gcells/s
   function paintStats() {
     const cells = life.width * life.height;
     const zoom = view.zoom >= 1 ? view.zoom.toFixed(1) : '1/' + (1 / view.zoom).toFixed(1);
-    stats.textContent =
-      `gen ${life.generation.toLocaleString(lang)} · ${genRate.toFixed(0)} gen/s · ` +
-      `${(genRate * cells / 1e9).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('cells')} · zoom ${zoom}`;
+    const parts = [`gen ${life.generation.toLocaleString(lang)}`, `${genRate.toFixed(0)} gen/s`];
+    if (!narrow.matches) {
+      parts.push(`${(genRate * cells / 1e9).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('cells')}`);
+    }
+    parts.push(`zoom ${zoom}`);
+    stats.textContent = parts.join(' · ');
   }
   onLang.push(paintStats);
 
@@ -491,7 +518,7 @@
   // ---- start -------------------------------------------------------------
   paintText();
   syncTheme();
-  newBoard(+sizeSel.value);
+  newBoard(sizeSel.value);
   setRunning(true); // starts playing as soon as the page opens
   window.lifer = { life, view, setRunning, fit }; // handy from the console
   requestAnimationFrame(frame);

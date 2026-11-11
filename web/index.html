@@ -33,10 +33,10 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="util back" href="https://taridepaco.github.io/">← taridepaco</a>
+    <a class="util back" href="https://taridepaco.github.io/"><span class="back-arrow" aria-hidden="true">←</span><span class="back-text"> taridepaco</span></a>
     <h1>Game of Lifer</h1>
     <span class="tag" data-i18n="kind">Simulador</span>
-    <button class="chip" type="button" id="theme-btn">Tema: auto</button>
+    <button class="chip theme-btn" type="button">Tema: auto</button>
     <div class="lang-switch" role="group" aria-label="Language / Idioma">
       <button type="button" data-lang="es" lang="es" aria-label="Español" aria-pressed="true">ES</button>
       <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
@@ -46,15 +46,19 @@
   <div class="app">
     <details id="panel" open>
       <summary><span class="util" data-i18n="panel">Controles</span></summary>
+      <script>
+        // phones and low screens (landscape phones) start with the panel folded, before the first paint
+        if (window.matchMedia && matchMedia("(max-width: 720px), (max-height: 500px)").matches) document.getElementById("panel").open = false;
+      </script>
       <div id="controls">
         <p class="pitch" data-i18n="pitch">El juego de la vida de Conway calculado en la GPU de tu navegador: millones de celdas en tiempo real.</p>
 
         <fieldset>
           <legend data-i18n="g.run">Simulación</legend>
           <div class="buttons">
-            <button class="btn wide" id="play" type="button" data-i18n-title="t.play" title="Reproducir / pausa (espacio)"><span data-i18n="play">Play</span></button>
-            <button class="btn ghost" id="step" type="button" data-i18n="step" data-i18n-title="t.step" title="Una generación (N)">Paso</button>
-            <button class="btn ghost" id="fit" type="button" data-i18n="fit" data-i18n-title="t.fit" title="Ver el tablero entero (F)">Encajar</button>
+            <button class="btn wide play desk" type="button" data-act="play" data-i18n-title="t.play" title="Reproducir / pausa (espacio)"><span data-i18n="play">Play</span></button>
+            <button class="btn ghost desk" type="button" data-act="step" data-i18n="step" data-i18n-title="t.step" title="Una generación (N)">Paso</button>
+            <button class="btn ghost m-wide" type="button" data-act="fit" data-i18n="fit" data-i18n-title="t.fit" title="Ver el tablero entero (F)">Encajar</button>
           </div>
           <div class="field">
             <label for="speed" data-i18n="speed">Velocidad</label>
@@ -83,8 +87,8 @@
             </div>
           </div>
           <div class="buttons">
-            <button class="btn ghost" id="random" type="button" data-i18n="random" data-i18n-title="t.random" title="Rellenar al azar (R)">Aleatorio</button>
-            <button class="btn ghost" id="clear" type="button" data-i18n="clear" data-i18n-title="t.clear" title="Vaciar (C)">Vaciar</button>
+            <button class="btn ghost desk" type="button" data-act="random" data-i18n="random" data-i18n-title="t.random" title="Rellenar al azar (R)">Aleatorio</button>
+            <button class="btn ghost m-wide" type="button" data-act="clear" data-i18n="clear" data-i18n-title="t.clear" title="Vaciar (C)">Vaciar</button>
           </div>
         </fieldset>
 
@@ -98,6 +102,11 @@
           <div class="buttons">
             <button class="btn ghost wide" id="rle" type="button" data-i18n="rle" data-i18n-title="t.rle" title="Pegar un patrón en formato RLE">Pegar RLE</button>
           </div>
+        </fieldset>
+
+        <fieldset class="m-only">
+          <legend data-i18n="g.look">Aspecto</legend>
+          <div class="row"><button class="chip theme-btn" type="button">Tema: auto</button></div>
         </fieldset>
 
         <fieldset class="help">
@@ -117,6 +126,12 @@
         </fieldset>
       </div>
     </details>
+
+    <div class="deck" role="group" data-i18n-label="deck" aria-label="Mandos">
+      <button class="btn play" type="button" data-act="play"><span data-i18n="play">Play</span></button>
+      <button class="btn ghost" type="button" data-act="step" data-i18n="step">Paso</button>
+      <button class="btn ghost" type="button" data-act="random" data-i18n="random">Aleatorio</button>
+    </div>
 
     <main class="screen">
       <canvas id="board" data-i18n-label="board"></canvas>
