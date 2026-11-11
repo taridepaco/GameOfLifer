@@ -186,19 +186,23 @@
   SPEEDS.forEach((s) => speedSel.add(new Option(`${s} gen/s`, s, false, s === rate)));
   speedSel.addEventListener('change', () => { rate = +speedSel.value; });
 
-  // Board shaped like the canvas (the default): its longer side is the smallest power of two that
-  // covers the longer side of the canvas in CSS pixels, between 256 and 1024 (512 on a phone,
-  // 1024 on a computer), and the other side keeps the proportions of the canvas, so the fitted
-  // board fills the screen.
+  // Board shaped like the canvas (the default), made of cells of a whole number c of device
+  // pixels, so fit() draws it at exactly c pixels per cell, aligned with the pixels: every cell is
+  // an exact square and there is no moiré (a scale near but not equal to 1 showed a pattern of
+  // blocks). c is the device pixels of the longer side of the canvas divided by a target of
+  // cells, rounded: the target is the smallest power of two that covers the longer side in CSS
+  // pixels, between 256 and 1024. A computer gets c = 1 (one cell per pixel), a phone 2 or 3.
   function screenBoard() {
+    const dpr = window.devicePixelRatio || 1;
     const cw = canvas.clientWidth, ch = canvas.clientHeight;
     if (!cw || !ch) return { w: 512, h: 512 };
-    const long = Math.max(cw, ch);
-    let p = 256;
-    while (p < long && p < 1024) p *= 2;
-    p = Math.min(p, life.maxSize);
-    const other = Math.max(1, Math.round(p * Math.min(cw, ch) / long));
-    return cw >= ch ? { w: p, h: other } : { w: other, h: p };
+    // the same device size that resizeCanvas() gives the canvas
+    const dw = Math.max(1, Math.round(cw * dpr)), dh = Math.max(1, Math.round(ch * dpr));
+    let target = 256;
+    while (target < Math.max(cw, ch) && target < 1024) target *= 2;
+    const long = Math.max(dw, dh);
+    const c = Math.max(1, Math.round(long / target), Math.ceil(long / life.maxSize));
+    return { w: Math.floor(dw / c), h: Math.floor(dh / c) };
   }
   let screenDims = screenBoard();
   let boardValue = 'screen'; // value of the size list for the current board
@@ -285,9 +289,10 @@
     if (e.target.matches('select, input[type="checkbox"], input[type="radio"]')) e.target.blur();
   });
 
-  function stepOnce() { setRunning(false); life.step(1); dirty = true; }
-  function randomize() { life.randomize(+density.value); dirty = true; }
-  function clearBoard() { life.clear(); dirty = true; }
+  // (the board exists once the page has started, see the end of this file)
+  function stepOnce() { if (!life.width) return; setRunning(false); life.step(1); dirty = true; }
+  function randomize() { if (!life.width) return; life.randomize(+density.value); dirty = true; }
+  function clearBoard() { if (!life.width) return; life.clear(); dirty = true; }
 
   /** New board for a value of the size list ('screen' or the side of a square). */
   function newBoard(value) {
@@ -341,12 +346,27 @@
   // Until the user zooms or pans, keep the whole board in view when the window changes size.
   let autoFit = true;
 
+  // When the board fits at one device pixel per cell or more, the zoom is a whole number of pixels
+  // and the board starts on a pixel boundary: cells are exact squares, with no moiré and no rows
+  // of uneven width. That is always the case for the "screen" board. A smaller board keeps the
+  // whole-pixel zoom only if it still fills at least 3/4 of the canvas; otherwise, and for boards
+  // larger than the canvas, it is fitted at 98% at any scale.
   function fit() {
     autoFit = true;
     resizeCanvas();
-    view.cx = life.width / 2;
-    view.cy = life.height / 2;
-    view.zoom = Math.min(canvas.width / life.width, canvas.height / life.height) * 0.98;
+    const z = Math.min(canvas.width / life.width, canvas.height / life.height);
+    const whole = Math.floor(z);
+    if (whole >= 1 && whole / z >= 0.75) {
+      const offX = Math.floor((canvas.width - life.width * whole) / 2);
+      const offY = Math.floor((canvas.height - life.height * whole) / 2);
+      view.zoom = whole;
+      view.cx = (canvas.width / 2 - offX) / whole;
+      view.cy = (canvas.height / 2 - offY) / whole;
+    } else {
+      view.zoom = z * 0.98;
+      view.cx = life.width / 2;
+      view.cy = life.height / 2;
+    }
     dirty = true;
   }
 
@@ -399,6 +419,7 @@
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   canvas.addEventListener('pointerdown', (e) => {
+    if (!life.width) return;
     canvas.setPointerCapture(e.pointerId);
     const [px, py] = devicePoint(e);
     if (e.button === 1 || e.button === 2 || e.shiftKey) {
@@ -518,8 +539,24 @@
   // ---- start -------------------------------------------------------------
   paintText();
   syncTheme();
-  newBoard(sizeSel.value);
-  setRunning(true); // starts playing as soon as the page opens
   window.lifer = { life, view, setRunning, fit }; // handy from the console
-  requestAnimationFrame(frame);
+
+  // Until the board exists, the canvas shows the colour around the board (not black).
+  const gl = life.gl;
+  gl.clearColor(...life.colors.outside, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // The "screen" board takes the size of the canvas, and the canvas only has its final size once
+  // the web fonts are in: they change the width of the folded panel and the height of the top bar.
+  // Waits for them, 1.5 s at most.
+  const fontsReady = document.fonts && document.fonts.ready
+    ? Promise.race([document.fonts.ready, new Promise((done) => setTimeout(done, 1500))])
+    : Promise.resolve();
+  fontsReady.then(() => {
+    screenDims = screenBoard();
+    paintSizes();
+    newBoard(sizeSel.value);
+    setRunning(true); // starts playing as soon as the page opens
+    requestAnimationFrame(frame);
+  });
 })();

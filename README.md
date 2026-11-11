@@ -41,10 +41,29 @@ On phones (up to 720 px wide) the screen comes first:
 
 ## Board size
 
-The default board ("Pantalla" / "Screen" in the size list) has the shape of the canvas: its longer
-side is the smallest power of two that covers the longer side of the canvas in CSS pixels (between
-256 and 1024), and the other side keeps the proportions of the canvas, so it fills the screen. That
-gives, for example, 491×512 on a 6.8" phone, 1024×870 on a laptop and 1024×622 on a 1920×1080 monitor.
+The default board ("Pantalla" / "Screen" in the size list) has the shape of the canvas and is made
+of cells of a whole number of device pixels, drawn at exactly that scale and aligned with the pixels:
+every cell is an exact square and there is no moiré. (A board drawn at a scale close to, but not
+exactly, one cell per pixel showed a pattern of blocks.)
+
+- Cell size `c`: the device pixels of the longer side of the canvas divided by a target number of
+  cells and rounded. The target is the smallest power of two that covers the longer side in CSS
+  pixels, between 256 and 1024. A computer gets `c = 1`, a phone 2 or 3.
+- Board: the device pixels of the canvas divided by `c`, in each direction.
+- It is computed when the page starts, once the web fonts are in (they change the size of the
+  canvas; 1.5 s at most), and again whenever "Pantalla" is picked.
+
+| Window | Canvas (device px) | Board | Pixels per cell |
+|---|---|---|---|
+| 6.8" phone (366×568 CSS px, density 3.5) | 1159×1208 | 579×604 | 2 |
+| iPhone 13 | 1065×1323 | 355×441 | 3 |
+| Laptop 1100×760 | 737×626 | 737×626 | 1 |
+| Laptop 1100×760 at 125% | 921×783 | 921×783 | 1 |
+| Monitor 1920×1080 | 1557×946 | 778×473 | 2 |
+| 2560×1440 at 150% | 3296×1959 | 1098×653 | 3 |
+
+"Encajar" (F) also uses a whole number of pixels per cell when the board fits at one pixel per cell
+or more and still fills at least 3/4 of the canvas. Larger boards are fitted at 98% at any scale.
 The square sizes, from 256² up to what the GPU allows, are still in the list. The simulation starts
 running when the page opens.
 
