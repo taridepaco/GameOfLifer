@@ -17,6 +17,7 @@ void main() {
 // Toroidal board: REPEAT sampling wraps the neighbours in hardware.
 const STEP_WRAP = `#version 300 es
 precision highp float;
+precision highp int;
 uniform sampler2D u_state;
 uniform vec2 u_inv;
 out vec4 o;
@@ -38,6 +39,7 @@ void main() {
 // Bounded board: cells outside are always dead.
 const STEP_BOUNDED = `#version 300 es
 precision highp float;
+precision highp int;
 uniform sampler2D u_state;
 uniform ivec2 u_size;
 out vec4 o;
@@ -54,8 +56,12 @@ void main() {
   o = vec4((k == 3 || (k == 2 && c > 0.5)) ? 1.0 : 0.0, 0.0, 0.0, 1.0);
 }`;
 
+// The hash needs 32-bit integers: "precision highp int" above is essential. Fragment shaders
+// default to mediump int, which many phone GPUs run with 16 bits; then h never exceeds 65535,
+// h / 2^32 is always about 0 and every cell starts alive.
 const RANDOM = `#version 300 es
 precision highp float;
+precision highp int;
 uniform uint u_seed;
 uniform float u_density;
 out vec4 o;
@@ -76,6 +82,7 @@ void main() {
 // flickering aliasing.
 const DRAW = `#version 300 es
 precision highp float;
+precision highp int;
 uniform sampler2D u_state;
 uniform vec2 u_size;
 uniform vec2 u_canvas;
