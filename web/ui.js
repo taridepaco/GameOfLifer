@@ -190,8 +190,8 @@
   // pixels, so fit() draws it at exactly c pixels per cell, aligned with the pixels: every cell is
   // an exact square and there is no moiré (a scale near but not equal to 1 showed a pattern of
   // blocks). c is the device pixels of the longer side of the canvas divided by a target of
-  // cells, rounded: the target is the smallest power of two that covers the longer side in CSS
-  // pixels, between 256 and 1024. A computer gets c = 1 (one cell per pixel), a phone 2 or 3.
+  // cells, rounded, and at least 2: the target is the smallest power of two that covers the longer
+  // side in CSS pixels, between 256 and 1024. A computer gets c = 2, a phone 2 or 3.
   function screenBoard() {
     const dpr = window.devicePixelRatio || 1;
     const cw = canvas.clientWidth, ch = canvas.clientHeight;
@@ -201,7 +201,7 @@
     let target = 256;
     while (target < Math.max(cw, ch) && target < 1024) target *= 2;
     const long = Math.max(dw, dh);
-    const c = Math.max(1, Math.round(long / target), Math.ceil(long / life.maxSize));
+    const c = Math.max(2, Math.round(long / target), Math.ceil(long / life.maxSize));
     return { w: Math.floor(dw / c), h: Math.floor(dh / c) };
   }
   let screenDims = screenBoard();
