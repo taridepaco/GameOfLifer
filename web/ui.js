@@ -186,7 +186,17 @@
 
   const sizeSel = $('size');
   for (let s = 256; s <= Math.min(life.maxSize, 16384); s *= 2) sizeSel.add(new Option('', s));
-  sizeSel.value = String(Math.min(1024, life.maxSize)); // default board: 1024² (1 M cells)
+  sizeSel.value = String(defaultSize());
+
+  // Default board from the size of the canvas: the smallest power of two that covers its longer
+  // side in CSS pixels, between 256² and 1024². A phone (canvas of 300-500 px) gets 512²,
+  // a computer 1024².
+  function defaultSize() {
+    const side = Math.max(canvas.clientWidth, canvas.clientHeight);
+    let s = 256;
+    while (s < side && s < 1024) s *= 2;
+    return Math.min(s, life.maxSize);
+  }
   function paintSizes() {
     for (const o of sizeSel.options) {
       const s = +o.value;
