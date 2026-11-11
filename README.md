@@ -47,8 +47,8 @@ every cell is an exact square and there is no moiré. (A board drawn at a scale 
 exactly, one cell per pixel showed a pattern of blocks.)
 
 - Cell size `c`: the device pixels of the longer side of the canvas divided by a target number of
-  cells and rounded. The target is the smallest power of two that covers the longer side in CSS
-  pixels, between 256 and 1024. A computer gets `c = 1`, a phone 2 or 3.
+  cells, rounded, and at least 2. The target is the smallest power of two that covers the longer
+  side in CSS pixels, between 256 and 1024. A computer gets `c = 2`, a phone 2 or 3.
 - Board: the device pixels of the canvas divided by `c`, in each direction.
 - It is computed when the page starts, once the web fonts are in (they change the size of the
   canvas; 1.5 s at most), and again whenever "Pantalla" is picked.
@@ -57,8 +57,9 @@ exactly, one cell per pixel showed a pattern of blocks.)
 |---|---|---|---|
 | 6.8" phone (366×568 CSS px, density 3.5) | 1159×1208 | 579×604 | 2 |
 | iPhone 13 | 1065×1323 | 355×441 | 3 |
-| Laptop 1100×760 | 737×626 | 737×626 | 1 |
-| Laptop 1100×760 at 125% | 921×783 | 921×783 | 1 |
+| Phone in landscape (844×390, density 2) | 1312×512 | 656×256 | 2 |
+| Laptop 1100×760 | 737×626 | 368×313 | 2 |
+| Laptop 1100×760 at 125% | 921×783 | 460×391 | 2 |
 | Monitor 1920×1080 | 1557×946 | 778×473 | 2 |
 | 2560×1440 at 150% | 3296×1959 | 1098×653 | 3 |
 
